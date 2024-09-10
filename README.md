@@ -12,9 +12,7 @@ The tool provides various options allowing to define what to clean up, which mak
 
 💡 It's built with **flexibility** and **automation** in mind, so it's a great fit for both running manually and scheduled background execution, for example with cron.
 
-<p align="cernter">
-  <img src="https://i.imgur.com/86sse0H.png" alt="An accurate representation of node_modules directory size">
-</p>
+![An accurate representation of node_modules directory size](https://i.imgur.com/86sse0H.png")
 
 ## How It Works
 - Scan for projects: The tool recursively scans the specified root directory for project folders, as defined by the presence of project indicator files (e.g., `package.json`).

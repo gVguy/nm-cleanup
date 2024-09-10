@@ -1,11 +1,11 @@
+#!/usr/bin/env node
+
 import fs from 'fs'
 import path from 'path'
 import { Command } from 'commander'
 import figlet from 'figlet'
 import readline from 'node:readline/promises'
 import chalk from 'chalk'
-// const util = require('util')
-// const questionAsync = util.promisify(readline.question)
 
 // Default values for options
 const DEFAULT_EXCLUDE = '^\\.'
@@ -18,8 +18,8 @@ const DEFAULT_PROJECT_INDICATOR_FILES = ['package.json']
 const program = new Command()
 
 program
-  .version('1.0.0')
-  .description('A Node.js script for cleaning up outdated directories based on modification time.')
+  .version('1.0.4')
+  .description('A CLI tool to remove unnecessary directories from outdated projects')
   .argument('[rootDir]', 'Root directory for cleanup', '.')
   .option('-n, --name <regex>', 'Regex to match directory names', DEFAULT_NAME_REGEX)
   .option('-t, --time <days>', 'Days threshold for modification time', DEFAULT_TIME_THRESHOLD_DAYS)
