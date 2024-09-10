@@ -40,7 +40,9 @@ nm-cleanup [rootDir] [options]
 **Example**
 ```bash
 nm-cleanup
-# or
+```
+or
+```bash
 nm-cleanup ~/projects
 ```
 
@@ -50,10 +52,8 @@ nm-cleanup ~/projects
 
 ### `-n, --name <regex>`
 
-**Default**
-```bash
-node_modules
-```
+**Default**  
+`node_modules`
 
 Specifies a regex pattern to match directory names that should be removed.
 
@@ -66,10 +66,8 @@ nm-cleanup --name 'dist|node_modules|\.cache'
 
 ### `-t, --time <days>`
 
-**Default**
-```bash
-30
-```
+**Default**  
+`30`
 
 Sets the threshold for how old a project should be (based on last modification time) before its directories are targeted for cleanup.
 
@@ -82,10 +80,8 @@ nm-cleanup --time 60
 
 ### `-x, --exclude <regex>`
 
-**Default**
-```bash
-^\.
-```
+**Default**  
+`^\.`
 
 Excludes directories from the filesystem scan, preventing `nm-cleanup` from even entering those directories. By default all hidden directories are excluded.
 
@@ -98,10 +94,8 @@ nm-cleanup --exclude '^logs|backups'
 
 ### `-p, --project [filenames...]`
 
-**Default**
-```bash
-package.json
-```
+**Default**  
+`package.json`
 
 Defines the indicator files that mark a directory as a project. This allows `nm-cleanup` to treat any directory with these files as a project root.
 
@@ -127,10 +121,8 @@ nm-cleanup --ignore projects/my-precious projects/special-project
 
 ### `-s, --separate-nested`
 
-**Default**
-```bash
-false
-```
+**Default**  
+`false`
 
 When this option is enabled, `nm-cleanup` treats nested projects as independent entities for the purpose of modification time measurement. This means that the modification time of nested projects is considered separately from their parent projects. If a parent project is deemed outdated based on the modification time, its target folders will be cleaned up, while the nested projects, if still fresh, will be preserved. 
 
@@ -145,10 +137,8 @@ nm-cleanup --separate-nested
 
 ### `-y, --yes`
 
-**Default**
-```bash
-false
-```
+**Default**  
+`false`
 
 Skips the confirmation prompt and automatically proceeds with the cleanup.
 
@@ -161,10 +151,8 @@ nm-cleanup --yes
 
 ### `--dry-run`
 
-**Default**
-```bash
-false
-```
+**Default**  
+`false`
 
 Performs a dry run of the cleanup process, showing what would be deleted without actually making any changes.
 
@@ -177,6 +165,10 @@ nm-cleanup --dry-run
 ### `-h, --help`
 
 Displays help information about the available commands and options.
+
+### `-V, --version`
+
+Displays version.
 
 **Example**
 ```bash
