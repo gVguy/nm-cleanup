@@ -12,7 +12,7 @@ The tool provides various options allowing to define what to clean up, which mak
 
 💡 It's built with **flexibility** and **automation** in mind, so it's a great fit for both running manually and scheduled background execution, for example with cron.
 
-<p style="text-align:center">
+<p align="cernter">
   <img src="https://i.imgur.com/86sse0H.png" alt="An accurate representation of node_modules directory size">
 </p>
 
