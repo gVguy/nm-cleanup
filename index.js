@@ -68,7 +68,7 @@ const scanProjectsRecursive = (dir, parentProject, isProject) => {
   ) {
     projects.set(dir, 0)
     parentProject = dir
-    console.log('✍️ Found a project', getRelativePath(dir))
+    console.log('✍️', chalk.dim('Project found'), getRelativePath(dir))
   }
 
   fs.readdirSync(dir, { withFileTypes: true }).forEach(entry => {
@@ -77,7 +77,7 @@ const scanProjectsRecursive = (dir, parentProject, isProject) => {
     const isIgnored = getIsIgnored(fullPath)
   
     if (isIgnored) {
-      console.log('⏭️ Skip (ignored)', getRelativePath(fullPath))
+      console.log('⏭️', chalk.dim('Skip (ignored)'), getRelativePath(fullPath))
       return
     }
 
@@ -114,7 +114,7 @@ const lockOnTargetsRecursively = (dir, separateNestedProjects) => {
     const isIgnored = getIsIgnored(fullPath)
   
     if (isIgnored) {
-      console.log('⏭️ Skip (ignored)', getRelativePath(fullPath))
+      console.log('⏭️', chalk.dim('Skip (ignored)'), getRelativePath(fullPath))
       return
     }
 
@@ -181,7 +181,7 @@ const confirm = async (prompt) => {
 const eliminate = (targets) => {
   for (const target of targets) {
     fs.rmSync(target, { recursive: true, force: true })
-    console.log('🩸 Deleted', getRelativePath(target))
+    console.log('🩸', chalk.dim('Deleted'), getRelativePath(target))
   }
 }
 
@@ -220,7 +220,7 @@ console.log(chalk.bold.cyan('Locking on targets in old projects...'))
 const { lockedOnTargets, skippedProjects } = lockOnTargets()
 
 skippedProjects.forEach(dir => {
-  console.log('🥒 Skip (fresh project)', getRelativePath(dir))
+  console.log('🥒', chalk.dim('Skip (fresh project)'), getRelativePath(dir))
 })
 
 line()

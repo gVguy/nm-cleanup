@@ -2,7 +2,7 @@
   "name": "nm-cleanup",
   "type": "module",
   "version": "1.0.0",
-  "description": "An utility script for cleaning up outdated directories",
+  "description": "CLI tool to remove unnecessary directories from outdated projects",
   "main": "index.js",
   "scripts": {
     "test": "jest"
