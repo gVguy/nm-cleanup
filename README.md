@@ -12,15 +12,14 @@ The tool provides various options allowing to define what to clean up, which mak
 
 💡 It's built with **flexibility** and **automation** in mind, so it's a great fit for both running manually and scheduled background execution, for example with cron.
 
-![Why](https://i.imgur.com/86sse0H.png)
+<p style="align:center">![Why](https://i.imgur.com/86sse0H.png)</p>
 
-## Features
-
-- **Auto-detects outdated projects** based on last modification time.
-- **Highly configurable**: customize target directories, exclude patterns, and set time threshold.
-- **Support for nested projects**: measure nested projects' modification times independently from the parent.
-- **Dry-run mode**: preview changes before deleting anything.
-- **Auto-confirmation**: run non-interactively skipping confirmation prompt.
+## How It Works
+- Scan for projects: The tool recursively scans the specified root directory for project folders, as defined by the presence of project indicator files (e.g., `package.json`).
+- Check modification times: For each project, the tool checks when the project was last modified (based on its contents and skipping directories matching `--exclude` pattern).
+- Lock on target directories: The tool identifies target directories (e.g., `node_modules`) only in those projects that haven't been modified for a certain threshold of time (e.g., 30 days).
+- Prompt for confirmation: Unless the `--yes` flag is used, the tool prompts for confirmation before deleting the identified directories.
+- Delete target directories: Upon confirmation (or if the `--yes` flag is used), the tool deletes the identified target directories.
 
 ## Installation
 
@@ -183,10 +182,3 @@ Displays help information about the available commands and options.
 ```bash
 nm-cleanup --help
 ```
-
-## How It Works
-- Scan for projects: The tool recursively scans the specified root directory for project folders, as defined by the presence of project indicator files (e.g., `package.json`).
-- Check modification times: For each project, the tool checks when the project was last modified (based on its contents and skipping directories matching `--exclude` pattern).
-- Lock on target directories: The tool identifies target directories (e.g., `node_modules`) only in those projects that haven't been modified for a certain threshold of time (e.g., 30 days).
-- Prompt for confirmation: Unless the `--yes` flag is used, the tool prompts for confirmation before deleting the identified directories.
-- Delete target directories: Upon confirmation (or if the `--yes` flag is used), the tool deletes the identified target directories.
