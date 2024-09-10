@@ -1,8 +1,12 @@
 {
   "name": "nm-cleanup",
   "type": "module",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "CLI tool to remove unnecessary directories from outdated projects",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gVguy/nm-cleanup.git"
+  },
   "main": "index.js",
   "bin": {
     "nm-cleanup": "index.js"
