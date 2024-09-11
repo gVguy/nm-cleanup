@@ -13,6 +13,7 @@ const DEFAULT_IGNORE = []
 const DEFAULT_NAME_REGEX = 'node_modules'
 const DEFAULT_TIME_THRESHOLD_DAYS = '30'
 const DEFAULT_PROJECT_INDICATOR_FILES = ['package.json']
+const DEFAULT_VERBOSE = ['targets']
 
 // Initialize commander program
 const program = new Command()
@@ -28,6 +29,8 @@ program
   .option('-i, --ignore [paths...]', 'Paths to ignore (space separated)', DEFAULT_IGNORE)
   .option('-s, --separate-nested', 'Treat nested projects as separante projects', false)
   .option('-y, --yes', 'Auto Yes - no confirmation prompt', false)
+  .option('-e, --empty-targets', 'Output projects even if they have zero targets', false)
+  .option('--verbose [options...]', 'Enable detailed output by category. Options are "tagets", "ignored", "excluded" (space separated)', DEFAULT_VERBOSE)
   .option('--dry-run', 'Show what would be done without making any changes', false)
 
 // Parse the command line arguments
@@ -43,19 +46,63 @@ const projectIndicatorFiles = options.project
 const shouldSeparateNestedProjects = options.separateNested
 const dryRun = options.dryRun
 const autoYes = options.yes
+const outputProjectsWithoutTargets = options.emptyTargets
+const verboseOptions = options.verbose
 
 const fullRootDir = path.resolve(process.cwd(), rootDir)
 
+const now = Date.now()
+const timeThresholdMs = timeThresholdDays * 24 * 60 * 60 * 1000
+const oldThreshold = now - timeThresholdMs
 
-const getRelativePath = (path) => path.replace(fullRootDir, '')
+/**
+ * returns path relative to rootDir
+ * @param {string} dir 
+ * @returns {string}
+ */
+const getRelativePath = (dir) => {
+  const lastParentDir = path.basename(fullRootDir)
+  const relativePath = path.relative(fullRootDir, dir)
+  return path.join(lastParentDir, relativePath)
+};
+/**
+ * returns whether a path should be ignored based on --ignore argument(s)
+ * @param {string} path 
+ * @returns {boolean}
+ */
 const getIsIgnored = (path) => ignorePaths.some(ignorePath => path.includes(ignorePath))
+/**
+ * returns whether a path is a project based on --project indicator file presence
+ * @param {string} dir 
+ * @returns {boolean}
+ */
 const getIsProject = (dir) => projectIndicatorFiles.some(filename => fs.existsSync(path.join(dir, filename)))
+/**
+ * returns wherer project mtime is fresher than --time threshold
+ * @param {Project} project 
+ */
+const getIsFresh = (project) =>  oldThreshold < project.mtime
 
-/** dir : mtime 
- * @type {Map<string, number>}
-*/
-const projects = new Map()
+/**
+ * @typedef {object} Project
+ * @property {string} path
+ * @property {boolean} isIgnored
+ * @property {number} mtime
+ * @property {string[]} targets
+ * @property {string[]} ignored
+ * @property {string[]} excluded
+ */
+/** path : project info
+ * @type {Project[]}
+ */
+const projects = []
 
+/**
+ * scans filesystem recursively to find projects and collect info
+ * @param {string} dir 
+ * @param {Project} [parentProject] 
+ * @param {boolean} [isProject]
+ */
 const scanProjectsRecursive = (dir, parentProject, isProject) => {
 
   if (isProject === undefined) {
@@ -66,9 +113,16 @@ const scanProjectsRecursive = (dir, parentProject, isProject) => {
     isProject &&
     (!parentProject || shouldSeparateNestedProjects)
   ) {
-    projects.set(dir, 0)
-    parentProject = dir
-    console.log('✍️', chalk.dim('Project found'), getRelativePath(dir))
+    const project = {
+      path: dir,
+      isIgnored: false,
+      mtime: 0,
+      targets: [],
+      ignored: [],
+      excluded: []
+    }
+    projects.push(project)
+    parentProject = project
   }
 
   fs.readdirSync(dir, { withFileTypes: true }).forEach(entry => {
@@ -77,7 +131,8 @@ const scanProjectsRecursive = (dir, parentProject, isProject) => {
     const isIgnored = getIsIgnored(fullPath)
   
     if (isIgnored) {
-      console.log('⏭️', chalk.dim('Skip (ignored)'), getRelativePath(fullPath))
+      parentProject.ignored.push(fullPath)
+      // console.log('⏭️', chalk.dim('Skip (ignored)'), getRelativePath(fullPath))
       return
     }
 
@@ -87,104 +142,56 @@ const scanProjectsRecursive = (dir, parentProject, isProject) => {
     if (!isNestedProject && parentProject) {
       const mtime = fs.statSync(fullPath).mtime.getTime()
 
-      if (projects.get(parentProject) < mtime) {
-        projects.set(parentProject, mtime)
+      if (parentProject.mtime < mtime) {
+        parentProject.mtime = mtime
       }
     }
 
-    const isExcluded = entry.name.match(excludeRegex) || entry.name.match(nameRegex)
-
-    if (isDirectory && !isExcluded) {
-      scanProjectsRecursive(fullPath, parentProject, isNestedProject)
-    }
-  })
-}
-
-const lockOnTargetsRecursively = (dir, separateNestedProjects) => {
-
-  if (separateNestedProjects.includes(dir)) {
-    return
-  }
-
-  const lockedOnTargets = []
-
-  fs.readdirSync(dir, { withFileTypes: true }).forEach(entry => {
-    const fullPath = path.join(dir, entry.name)
-  
-    const isIgnored = getIsIgnored(fullPath)
-  
-    if (isIgnored) {
-      console.log('⏭️', chalk.dim('Skip (ignored)'), getRelativePath(fullPath))
-      return
-    }
-
-    const isDirectory = entry.isDirectory()
+    const isTarget = entry.name.match(nameRegex)
     const isExcluded = entry.name.match(excludeRegex)
 
-    if (entry.name.match(nameRegex)) {
+    if (isTarget) {
 
-      lockedOnTargets.push(fullPath)
-    } else if (isDirectory && !isExcluded) {
+      parentProject && parentProject.targets.push(fullPath)
 
-      const recursiveTargets = lockOnTargetsRecursively(fullPath, separateNestedProjects)
-      if (recursiveTargets) {
-        lockedOnTargets.push(...recursiveTargets)
-      }
+    } else if (isExcluded) {
+
+      parentProject && parentProject.excluded.push(fullPath)
+
+    } else if (isDirectory) {
+
+      scanProjectsRecursive(fullPath, parentProject, isNestedProject)
 
     }
   })
-
-  return lockedOnTargets
 }
 
-const lockOnTargets = () => {
-
-  const now = Date.now()
-  const oldThreshold = now - timeThresholdDays * 24 * 60 * 60 * 1000
-
-  const projectsKeys = [...projects.keys()]
-
-  const lockedOnTargets = []
-  const skippedProjects = []
-
-  for (const [dir, mtime] of projects.entries()) {
-
-    const separateNestedProjects = projectsKeys.filter(projectDir => (
-      projectDir.startsWith(dir) && projectDir != dir
-    ))
-
-    if (mtime < oldThreshold) {
-      const projectTargets = lockOnTargetsRecursively(dir, separateNestedProjects)
-      if (projectTargets) {
-        lockedOnTargets.push(...projectTargets)
-      }
-    } else {
-      skippedProjects.push(dir)
-    }
-  }
-
-  return {lockedOnTargets, skippedProjects}
-}
-
-const confirm = async (prompt) => {
+/**
+ * returns whether the action is confirmed by user input
+ * @returns {Promise<boolean>}
+ */
+const confirm = async () => {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   })
-  let answer = await rl.question(prompt + ' (y)')
+  let answer = await rl.question('(Y/n)')
   answer ||= 'y'
   const isYes = answer.toLowerCase() == 'y'
   rl.close()
   return isYes
 }
 
+/**
+ * delete targets from fs
+ * @param {string[]} targets 
+ */
 const eliminate = (targets) => {
   for (const target of targets) {
     fs.rmSync(target, { recursive: true, force: true })
-    console.log('🩸', chalk.dim('Deleted'), getRelativePath(target))
+    console.log('🗡️', chalk.dim('Deleted'), getRelativePath(target))
   }
 }
-
 
 
 const line = () => console.log(chalk.dim('-'.repeat(terminalWidth)))
@@ -196,9 +203,9 @@ const header = figlet.textSync('NM CLEANUP', {
   width: terminalWidth
 })
 
+console.log("\x1b[2J") // clear
 console.log(chalk.cyan(header))
 
-console.log(chalk.bold.cyan('Starting the cleanup process...'))
 console.log('⚙️ Dry run:', dryRun)
 console.log('⚙️ Auto confirm:', autoYes)
 console.log('⚙️ Root dir:', fullRootDir)
@@ -208,46 +215,96 @@ console.log('⚙️ Exclude dirs:', excludeRegex)
 console.log('⚙️ Time threshold (days):', timeThresholdDays)
 console.log('⚙️ Project indicator files:', projectIndicatorFiles)
 console.log('⚙️ Separate nested projects:', shouldSeparateNestedProjects)
+console.log('⚙️ Output projects with 0 targets:', outputProjectsWithoutTargets)
+console.log('⚙️ Verbosity:', verboseOptions)
 
 line()
 console.log(chalk.bold.cyan('Scanning projects...'))
 
 scanProjectsRecursive(fullRootDir)
 
-line()
-console.log(chalk.bold.cyan('Locking on targets in old projects...'))
+projects.sort((a, b) => b.mtime - a.mtime)
 
-const { lockedOnTargets, skippedProjects } = lockOnTargets()
-
-skippedProjects.forEach(dir => {
-  console.log('🥒', chalk.dim('Skip (fresh project)'), getRelativePath(dir))
-})
-
-line()
-
-if (lockedOnTargets.length) {
-
-  console.log(chalk.bold.cyan('Locked on targets'))
-  lockedOnTargets.forEach(target => {
-    console.log('🎯', chalk.red(getRelativePath(target)))
-  })
-
-  if (dryRun) {
-    console.log('🤷‍♂️ Dry run.')
-  } else {
-
-    const confirmed = autoYes || await confirm('Eliminate targets?')
-    if (confirmed) {
-      line()
-      console.log(chalk.bold.cyan('🗡️ Eliminating targets...'))
-      eliminate(lockedOnTargets)
-    } else {
-      console.log('🙅‍♂️ Elimination cancelled by user.')
-    }
-
+for (const project of projects) {
+  if (!outputProjectsWithoutTargets && !project.targets.length) {
+    continue
   }
-} else {
-  console.log('🤷‍♂️ Nothing to clear - no targets found in old projects.')
+  const isFresh = getIsFresh(project)
+  let c = chalk
+  if (isFresh || !project.targets.length) {
+    c = c.dim
+  }
+  if (isFresh) {
+    console.log('🥒', c('Fresh project'), c.bold.underline(getRelativePath(project.path)))
+  } else {
+    let oc = c
+    if (project.targets.length) {
+      oc = c.red
+    }
+    console.log('💀', c('Old project'), oc.bold.underline(getRelativePath(project.path)))
+  }
+  if (project.ignored.length) {
+    console.log('  ⏭️', c.bold(`Ignored (${project.ignored.length})`))
+    if (verboseOptions.includes('ignored')) {
+      for (const ignored of project.ignored) {
+        console.log(' ', c.dim(getRelativePath(ignored)))
+      }
+    }
+  }
+  if (project.excluded.length) {
+    console.log('  ⏭️', c.bold(`Excluded (${project.excluded.length})`))
+    if (verboseOptions.includes('excluded')) {
+      for (const excluded of project.excluded) {
+        console.log('   ', c.dim(getRelativePath(excluded)))
+      }
+    }
+  }
+  console.log('  🎯', c.bold(`Targets (${project.targets.length})`))
+  // if (isFresh) {
+  //   console.log('  ', c.italic('(Won\'t delete targets in this project as it\'s fresh)'))
+  // }
+  if (verboseOptions.includes('targets')) {
+    for (const target of project.targets) {
+      console.log('  ', c.red(getRelativePath(target)))
+    }
+  }
 }
 
-console.log('✅ Done.')
+const confirmAndEliminate = async () => {
+
+  const targetsToEliminate = projects.flatMap(project => {
+    if (getIsFresh(project)) {
+      return []
+    } else {
+      return project.targets
+    }
+  })
+
+  if (!targetsToEliminate.length) {
+    console.log('🤷‍♂️ Nothing to clear - no targets found in old projects.')
+    return
+  }
+
+  let confirmed = autoYes
+  if (!confirmed) {
+    console.log('Clear 🎯', chalk.bold('Targets'), 'in 💀', chalk.bold('Old'), 'projects?')
+    confirmed = await confirm()
+  }
+  if (confirmed) {
+    console.log(chalk.bold.cyan('Clearing targets...'))
+    eliminate(targetsToEliminate)
+    console.log('✅ All targets successfully cleared.')
+  } else {
+    console.log('🙅‍♂️ Cancelled by user.')
+  }
+
+}
+
+line()
+
+if (dryRun) {
+  console.log('🤷‍♂️ Dry run.')
+} else {
+  confirmAndEliminate()
+}
+

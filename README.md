@@ -149,6 +149,30 @@ Use this option when you want to run nm-cleanup in non-interactive environments,
 nm-cleanup --yes
 ```
 
+### `--verbose`
+
+**Default**  
+`targets`
+
+Enables verbose output by category. When a category is enabled, all matched files and folders are printed. Otherwise, only the number of files in each category will be printed. Categories are: `targets`, `ignored` and `excluded`. By default only "targets" are enabled.
+
+**Example**
+```bash
+nm-cleanup --verbose ignored targets
+```
+
+### `-e, --empty-targets`
+
+**Default**  
+`false`
+
+Outputs all found projects, even if they don't have any targets to clean up.
+
+**Example**
+```bash
+nm-cleanup --empty-targets
+```
+
 ### `--dry-run`
 
 **Default**  

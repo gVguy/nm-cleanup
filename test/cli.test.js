@@ -1,17 +1,15 @@
-const { execSync } = require('child_process')
-const fs = require('fs')
-const path = require('path')
-
-const scriptPath = path.resolve(__dirname, 'index.js')
-const tempDir = path.resolve(__dirname, 'temp_test_dir')
-
+import { execSync } from 'child_process'
+import fs from 'fs'
+import path from 'path'
+import { cleanupTestFS, setupTestFS } from './setup-test-fs.js'
+import {scriptPath, tempDir} from './test-config.js'
 
 // TESTS
 
 describe('nm-cleanup', () => {
 
   afterEach(() => {
-    cleanupTestEnvironment()
+    cleanupTestFS()
   })
 
 
@@ -47,7 +45,7 @@ describe('nm-cleanup', () => {
       { path: 'project-c/package.json' },
       { path: 'project-c/nested/test.txt', modifiedDaysAgo: 1 },
       { path: 'project-c/node_modules/' },
-    ], /project-a\/node_modules/)
+    ])
 
     run()
 
@@ -66,7 +64,7 @@ describe('nm-cleanup', () => {
         { path: 'project-a/nested/node_modules/' },
         { path: 'project-b/package.json' },
         { path: 'project-b/node_modules/' },
-      ], /project-a\/node_modules/)
+      ])
   
       const ignore = 'project-b/ project-a/nested'
       run(`${iFlag} ${ignore}`)
@@ -88,7 +86,7 @@ describe('nm-cleanup', () => {
         { path: 'project-b/package.json' },
         { path: 'project-b/dist/', shouldDelete: true },
         { path: 'project-b/custom-folder/', shouldDelete: true },
-      ], /custom-folder|dist/)
+      ])
   
       const name = '"custom-folder|dist"'
       run(`${nFlag} ${name}`)
@@ -206,80 +204,3 @@ const run = (args = '', stdio = false) => {
 }
 
 // Defines the test environment configuration
-const setupTestFS = (config, targetRegex = /node_modules/, projectIndicatorFile = 'package.json') => {
-  
-  const applyModificationTime = (filePath, daysAgo) => {
-    const modifiedTime = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000)
-    fs.utimesSync(filePath, modifiedTime, modifiedTime)
-    // Recursively update parent directory mtime
-    const parentDir = path.dirname(filePath)
-    if (parentDir !== tempDir) { // Avoid updating root dir
-      applyModificationTime(parentDir, daysAgo) // Use the same modification time
-    }
-  }
-
-  const targets = []
-  const nonTargets = []
-
-  // sort newest to the end, so that modification times get set correctly
-  config.forEach(record => record.modifiedDaysAgo ??= 1000)
-  config.sort((a,b) => b.modifiedDaysAgo - a.modifiedDaysAgo)
-
-  config.forEach(({ path: filePath, modifiedDaysAgo, shouldDelete }) => {
-    const fullPath = path.join(tempDir, filePath)
-    const dirPath = path.dirname(fullPath)
-
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true })
-    }
-
-    if (filePath.endsWith('/')) {
-      fs.mkdirSync(fullPath, { recursive: true })
-    } else {
-      fs.writeFileSync(fullPath, '')
-    }
-
-    applyModificationTime(fullPath, modifiedDaysAgo)
-
-    if (shouldDelete) {
-      targets.push(fullPath)
-    } else {
-      nonTargets.push(fullPath)
-    }
-  })
-
-  const expectFS = () => {
-    const deletedTargets = []
-    const preservedTargets = []
-    const deletedNonTargets = []
-    const preservedNonTargets = []
-    targets.forEach((target) => {
-      const isExists = fs.existsSync(target)
-      if (isExists) {
-        preservedTargets.push(target)
-      } else {
-        deletedTargets.push(target)
-      }
-    })
-    nonTargets.forEach((nonTarget) => {
-      const isExists = fs.existsSync(nonTarget)
-      if (isExists) {
-        preservedNonTargets.push(nonTarget)
-      } else {
-        deletedNonTargets.push(nonTarget)
-      }
-    })
-    expect(deletedTargets).toEqual(targets)
-    expect(preservedNonTargets).toEqual(nonTargets)
-    expect(preservedTargets).toHaveLength(0)
-    expect(deletedNonTargets).toHaveLength(0)
-  }
-
-  return expectFS
-}
-
-
-// Cleans up test environment
-const cleanupTestEnvironment = () => {
-  fs.rmSync(tempDir, { recursive: true, force: true })
-}

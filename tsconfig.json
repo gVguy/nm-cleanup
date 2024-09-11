@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "outDir": "non-existing-dir-to-silence-the-cant-compile-error",
+    "esModuleInterop": true,
+    "module": "NodeNext"
+  },
+}
