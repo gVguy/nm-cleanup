@@ -2,6 +2,8 @@
 
 `nm-cleanup` is a customizable Node.js CLI tool designed to remove unnecessary directories from outdated projects. 
 
+![Screen recording of the example program run](https://s1.gifyu.com/images/S1YI4.gif)
+
 ## Why?
 
 Over time, projects accumulate unnecessary files and folders, especially large directories like `node_modules` that can take up significant disk space. When projects are no longer actively maintained or used, these directories become redundant, but you don't want to waste time on manually identifying and removing them.
@@ -12,7 +14,7 @@ The tool provides various options allowing to define what to clean up, which mak
 
 💡 It's built with **flexibility** and **automation** in mind, so it's a great fit for both running manually and scheduled background execution, for example with cron.
 
-![An accurate representation of node_modules directory size](https://i.imgur.com/86sse0H.png")
+![An accurate representation of node_modules directory size](https://i.imgur.com/yi0Ccv8.png")
 
 ## How It Works
 - Scan for projects: The tool recursively scans the specified root directory for project folders, as defined by the presence of project indicator files (e.g., `package.json`).
