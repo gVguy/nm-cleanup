@@ -1,7 +1,7 @@
 {
   "name": "nm-cleanup",
   "type": "module",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "CLI tool to remove unnecessary directories from outdated projects",
   "repository": {
     "type": "git",
@@ -15,8 +15,9 @@
     "index.js"
   ],
   "scripts": {
-    "test": "jest",
-    "c-test-fs": "node test/create-test-folders.js"
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
+    "c-test-fs": "node test/create-test-folders.js",
+    "prepublishOnly": "npm run test"
   },
   "keywords": [
     "cleanup",

@@ -19,7 +19,7 @@ const DEFAULT_VERBOSE = ['targets']
 const program = new Command()
 
 program
-  .version('1.0.5')
+  .version('1.0.6')
   .description('A CLI tool to remove unnecessary directories from outdated projects')
   .argument('[rootDir]', 'Root directory for cleanup', '.')
   .option('-n, --name <regex>', 'Regex to match directory names', DEFAULT_NAME_REGEX)

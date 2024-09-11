@@ -43,7 +43,7 @@ export const setupTestFS = (config) => {
     if (filePath.endsWith('/')) {
       fs.mkdirSync(fullPath, { recursive: true })
     } else {
-      fs.writeFileSync(fullPath, '')
+      fs.writeFileSync(fullPath, '{}')
     }
 
     applyModificationTime(fullPath, modifiedDaysAgo)
