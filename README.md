@@ -37,6 +37,10 @@ npm install -g nm-cleanup
 ```bash
 nm-cleanup [rootDir] [options]
 ```
+or with alias:
+```bash
+nmc [rootDir] [options]
+```
 
 `[rootDir]`: The root directory containing all your projects. Defaults to the current directory (`.`).
 
