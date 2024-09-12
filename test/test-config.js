@@ -6,4 +6,4 @@ if (!__dirname) {
 }
 
 export const scriptPath = path.resolve(__dirname, '../index.js')
-export const tempDir = path.resolve(__dirname, '../temp_test_dir')
+export const tempDir = path.resolve(__dirname, '../test_projects')

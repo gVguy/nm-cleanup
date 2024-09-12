@@ -12,6 +12,10 @@ describe('nm-cleanup', () => {
     cleanupTestFS()
   })
 
+  beforeAll(() => {
+    cleanupTestFS()
+  })
+
 
   test('should delete targets in outdated projects & keeping other files in place', () => {
 
