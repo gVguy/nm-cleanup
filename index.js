@@ -7,7 +7,6 @@ import figlet from 'figlet'
 import readline from 'node:readline/promises'
 import chalk from 'chalk'
 
-// Default values for options
 const DEFAULT_EXCLUDE = '^\\.'
 const DEFAULT_IGNORE = []
 const DEFAULT_NAME_REGEX = 'node_modules'
@@ -15,11 +14,10 @@ const DEFAULT_TIME_THRESHOLD_DAYS = '30'
 const DEFAULT_PROJECT_INDICATOR_FILES = ['package.json']
 const DEFAULT_VERBOSE = ['targets']
 
-// Initialize commander program
 const program = new Command()
 
 program
-  .version('1.0.6')
+  .version('1.0.7')
   .description('A CLI tool to remove unnecessary directories from outdated projects')
   .argument('[rootDir]', 'Root directory for cleanup', '.')
   .option('-n, --name <regex>', 'Regex to match directory names', DEFAULT_NAME_REGEX)
@@ -28,12 +26,11 @@ program
   .option('-p, --project [filenames...]', 'Filenames of the project directory indicator files (space separated)', DEFAULT_PROJECT_INDICATOR_FILES)
   .option('-i, --ignore [paths...]', 'Paths to ignore (space separated)', DEFAULT_IGNORE)
   .option('-s, --separate-nested', 'Treat nested projects as separante projects', false)
-  .option('-y, --yes', 'Auto Yes - no confirmation prompt', false)
+  .option('-y, --yes', 'Auto Yes - disable confirmation prompt', false)
   .option('-e, --empty-targets', 'Output projects even if they have zero targets', false)
   .option('--verbose [options...]', 'Enable detailed output by category. Options are "tagets", "ignored", "excluded" (space separated)', DEFAULT_VERBOSE)
   .option('--dry-run', 'Show what would be done without making any changes', false)
 
-// Parse the command line arguments
 program.parse(process.argv)
 
 const options = program.opts()
@@ -132,7 +129,6 @@ const scanProjectsRecursive = (dir, parentProject, isProject) => {
   
     if (isIgnored) {
       parentProject.ignored.push(fullPath)
-      // console.log('⏭️', chalk.dim('Skip (ignored)'), getRelativePath(fullPath))
       return
     }
 

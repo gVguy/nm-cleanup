@@ -1,14 +1,14 @@
 # Node Modules Cleanup
 
-`nm-cleanup` is a customizable Node.js CLI tool designed to remove unnecessary directories from outdated projects. 
+`nm-cleanup` is a customizable Node.js CLI tool designed to remove unnecessary directories from *outdated* projects.
 
 ![Screen recording of the example program run](https://s1.gifyu.com/images/S1YI4.gif)
 
-## Why?
+## Why
 
 Over time, projects accumulate unnecessary files and folders, especially large directories like `node_modules` that can take up significant disk space. When projects are no longer actively maintained or used, these directories become redundant, but you don't want to waste time on manually identifying and removing them.
 
-`nm-cleanup` automates this process, saving you time and effort. It scans your directories, identifies unused or outdated project folders, and cleans up unnecessary files (like `node_modules`), freeing up valuable disk space.
+`nm-cleanup` helps automate this process, saving you time and effort. It scans your directories, identifies unused or outdated project folders, and cleans up unnecessary files (like `node_modules`), freeing up valuable disk space.
 
 The tool provides various options allowing to define what to clean up, which makes it suitable for a wide range of cleanup tasks beyond just `node_modules`.
 
@@ -17,15 +17,16 @@ The tool provides various options allowing to define what to clean up, which mak
 ![An accurate representation of node_modules directory size](https://i.imgur.com/yi0Ccv8.png")
 
 ## How It Works
-- Scan for projects: The tool recursively scans the specified root directory for project folders, as defined by the presence of project indicator files (e.g., `package.json`).
-- Check modification times: For each project, the tool checks when the project was last modified (based on its contents and skipping directories matching `--exclude` pattern).
-- Lock on target directories: The tool identifies target directories (e.g., `node_modules`) only in those projects that haven't been modified for a certain threshold of time (e.g., 30 days).
-- Prompt for confirmation: Unless the `--yes` flag is used, the tool prompts for confirmation before deleting the identified directories.
-- Delete target directories: Upon confirmation (or if the `--yes` flag is used), the tool deletes the identified target directories.
+- **Recursively scan** the specified root directory for project folders, as defined by the presence of project indicator files (e.g., `package.json`), defined with `--project`(`-p`) flag.
+- **Check modification times** for each project based on its contents and skipping directories matching `--exclude`(`-e`) pattern.
+- **Identify potential targets** within found projects. Target is any file or directory matching the `--name`(`-n`) pattern (e.g., `node_modules`).
+- **Print scan results** categorizing projects into "fresh" and "old" with feedback on what was ignored, excluded, and most importantly, what targets were identified in each project. 
+- **Prompt for confirmation** before deleting the targets *in the old projects*. This step can be skipped with `--yes`(`-y`) flag for automated usage.
+- **Delete target directories** only in those projects that haven't been modified for a certain threshold of time that can be adjusted with `--time`(`-t`) (e.g., `30` days).
 
 ## Installation
 
-Make sure you have Node.js installed on your machine. Then, install the tool globally using npm:
+Make sure you have Node.js installed on your machine. Then, install the tool globally:
 
 ```bash
 npm install -g nm-cleanup
