@@ -9,7 +9,8 @@
   },
   "main": "index.js",
   "bin": {
-    "nm-cleanup": "index.js"
+    "nm-cleanup": "index.js",
+    "nmc": "index.js"
   },
   "files": [
     "index.js"
