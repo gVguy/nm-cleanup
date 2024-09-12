@@ -156,16 +156,19 @@ Use this option when you want to run nm-cleanup in non-interactive environments,
 nm-cleanup --yes
 ```
 
-### `--verbose`
+### `-v, --verbose`
 
 **Default**  
 `targets`
 
-Enables verbose output by category. When a category is enabled, all matched files and folders are printed. Otherwise, only the number of files in each category will be printed. Categories are: `targets`, `ignored` and `excluded`. By default only "targets" are enabled.
+Enables verbose output by category. When a category is enabled, all matched files and folders are printed. Otherwise, only the number of files in each category will be printed. Categories are: `targets`, `ignored`, `excluded` or `none`. By default only "targets" are enabled.
+
+If no category options are provided (e.g., `nmc -v`), *vervosity is enabled for all categories*. If you don't want verbosity in any categories, set to `none`.
 
 **Example**
 ```bash
 nm-cleanup --verbose ignored targets
+nm-cleanup --verbose
 ```
 
 ### `-e, --empty-targets`

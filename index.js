@@ -28,7 +28,7 @@ program
   .option('-s, --separate-nested', 'Treat nested projects as separante projects', false)
   .option('-y, --yes', 'Auto Yes - disable confirmation prompt', false)
   .option('-e, --empty-targets', 'Output projects even if they have zero targets', false)
-  .option('--verbose [options...]', 'Enable detailed output by category. Options are "tagets", "ignored", "excluded" (space separated)', DEFAULT_VERBOSE)
+  .option('-v, --verbose [options...]', 'Enable detailed output by category. Options are "tagets", "ignored", "excluded", "none" (space separated), or nothing (-v ) implying all', DEFAULT_VERBOSE)
   .option('--dry-run', 'Show what would be done without making any changes', false)
 
 program.parse(process.argv)
@@ -45,6 +45,10 @@ const dryRun = options.dryRun
 const autoYes = options.yes
 const outputProjectsWithoutTargets = options.emptyTargets
 const verboseOptions = options.verbose
+
+const isVerboseIgnored = !verboseOptions.length || verboseOptions.includes('ignored')
+const isVerboseExcluded = !verboseOptions.length || verboseOptions.includes('excluded')
+const isVerboseTargets = !verboseOptions.length || verboseOptions.includes('targets')
 
 const fullRootDir = path.resolve(process.cwd(), rootDir)
 
@@ -231,37 +235,40 @@ for (const project of projects) {
     c = c.dim
   }
   if (isFresh) {
-    console.log('🥒', c('Fresh project'), c.bold.underline(getRelativePath(project.path)))
+    console.log(`🥒 ${c('Fresh project')} ${c.bold.underline(getRelativePath(project.path))}`)
   } else {
     let oc = c
     if (project.targets.length) {
       oc = c.red
     }
-    console.log('💀', c('Old project'), oc.bold.underline(getRelativePath(project.path)))
+    console.log(`💀 ${c('Old project')} ${oc.bold.underline(getRelativePath(project.path))}`)
   }
+  const modifiedMsAgo = now - project.mtime
+  const modifiedDaysAgo = Math.floor(modifiedMsAgo / 1000 / 60 / 60 / 24)
+  console.log(c.italic(`   Modified ${modifiedDaysAgo} days ago`))
   if (project.ignored.length) {
-    console.log('  ⏭️', c.bold(`Ignored (${project.ignored.length})`))
-    if (verboseOptions.includes('ignored')) {
+    console.log(`   ⏩ ${c.bold('Ignored')} ${c(`(${project.ignored.length})`)}`)
+    if (isVerboseIgnored) {
       for (const ignored of project.ignored) {
-        console.log(' ', c.dim(getRelativePath(ignored)))
+        console.log(c.dim(`      ${getRelativePath(ignored)}`))
       }
     }
   }
   if (project.excluded.length) {
-    console.log('  ⏭️', c.bold(`Excluded (${project.excluded.length})`))
-    if (verboseOptions.includes('excluded')) {
+    console.log(`   ⏩ ${c.bold('Excluded')} ${c(`(${project.excluded.length})`)}`)
+    if (isVerboseExcluded) {
       for (const excluded of project.excluded) {
-        console.log('   ', c.dim(getRelativePath(excluded)))
+        console.log(`      ${c.dim(getRelativePath(excluded))}`)
       }
     }
   }
-  console.log('  🎯', c.bold(`Targets (${project.targets.length})`))
+  console.log(`   🎯 ${c.bold('Targets')} ${c(`(${project.targets.length})`)}`)
   // if (isFresh) {
   //   console.log('  ', c.italic('(Won\'t delete targets in this project as it\'s fresh)'))
   // }
-  if (verboseOptions.includes('targets')) {
+  if (isVerboseTargets) {
     for (const target of project.targets) {
-      console.log('  ', c.red(getRelativePath(target)))
+      console.log(`      ${c.red(getRelativePath(target))}`)
     }
   }
 }
@@ -283,7 +290,7 @@ const confirmAndEliminate = async () => {
 
   let confirmed = autoYes
   if (!confirmed) {
-    console.log('Clear 🎯', chalk.bold('Targets'), 'in 💀', chalk.bold('Old'), 'projects?')
+    console.log(`Clear 🎯 ${chalk.bold('Targets')} in 💀 ${chalk.bold('Old')} projects?`)
     confirmed = await confirm()
   }
   if (confirmed) {

@@ -1,17 +1,20 @@
 import { setupTestFS } from './setup-test-fs.js'
 
 setupTestFS([
-  {path: 'recent-project/package.json', modifiedDaysAgo: 1},
-  {path: 'recent-project/node_modules'},
-  {path: 'recent-project/.git'},
+  {path: 'project-a/package.json', modifiedDaysAgo: 1},
+  {path: 'project-a/node_modules'},
+  {path: 'project-a/.git'},
 
-  {path: 'old-project/package.json'},
-  {path: 'old-project/node_modules'},
-  {path: 'old-project/.git'},
+  {path: 'project-b/package.json'},
+  {path: 'project-b/node_modules'},
+  {path: 'project-b/.git'},
 
-  {path: 'some-monorepo/frontend/package.json'},
-  {path: 'some-monorepo/frontend/node_modules'},
-  {path: 'some-monorepo/backend/package.json', modifiedDaysAgo: 14},
-  {path: 'some-monorepo/backend/node_modules'},
-  {path: 'old-project/.git'},
+  {path: 'monrepo-c/frontend/package.json'},
+  {path: 'monrepo-c/frontend/node_modules'},
+  {path: 'monrepo-c/backend/package.json', modifiedDaysAgo: 14},
+  {path: 'monrepo-c/backend/node_modules'},
+  {path: 'monrepo-c/.git'},
+
+  {path: 'project-d/package.json'},
+  {path: 'project-d/node_modules'},
 ])
