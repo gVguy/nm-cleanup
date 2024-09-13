@@ -17,7 +17,7 @@ const DEFAULT_VERBOSE = ['targets']
 const program = new Command()
 
 program
-  .version('1.0.8')
+  .version('1.0.9')
   .description('A CLI tool to remove unnecessary directories from outdated projects')
   .argument('[rootDir]', 'Root directory for cleanup', '.')
   .option('-n, --name <regex>', 'Regex to match directory names', DEFAULT_NAME_REGEX)
@@ -99,6 +99,24 @@ const getIsFresh = (project) =>  oldThreshold < project.mtime
 const projects = []
 
 /**
+ * creates a new project object
+ * @param {Partial<Project>} options 
+ */
+const addProject = (options) => {
+  const project = {
+    path: '',
+    isIgnored: false,
+    mtime: 0,
+    targets: [],
+    ignored: [],
+    excluded: []
+  }
+  Object.assign(project, options)
+  projects.push(project)
+  return project
+}
+
+/**
  * scans filesystem recursively to find projects and collect info
  * @param {string} dir 
  * @param {Project} [parentProject] 
@@ -114,30 +132,34 @@ const scanProjectsRecursive = (dir, parentProject, isProject) => {
     isProject &&
     (!parentProject || shouldSeparateNestedProjects)
   ) {
-    const project = {
+    const project = addProject({
       path: dir,
-      isIgnored: false,
-      mtime: 0,
-      targets: [],
-      ignored: [],
-      excluded: []
-    }
-    projects.push(project)
+    })
     parentProject = project
   }
 
   fs.readdirSync(dir, { withFileTypes: true }).forEach(entry => {
     const fullPath = path.join(dir, entry.name)
   
+    const isDirectory = entry.isDirectory()
+    const isNestedProject = getIsProject(fullPath)
     const isIgnored = getIsIgnored(fullPath)
   
     if (isIgnored) {
-      parentProject.ignored.push(fullPath)
+      if (
+        isNestedProject &&
+        (!parentProject || shouldSeparateNestedProjects)
+      ) {
+        addProject({
+          path: fullPath,
+          isIgnored: true,
+          mtime: Infinity,
+        })
+      } else {
+        parentProject && parentProject.ignored.push(fullPath)
+      }
       return
     }
-
-    const isDirectory = entry.isDirectory()
-    const isNestedProject = getIsProject(fullPath)
 
     if (!isNestedProject && parentProject) {
       const mtime = fs.statSync(fullPath).mtime.getTime()
@@ -231,10 +253,13 @@ for (const project of projects) {
   }
   const isFresh = getIsFresh(project)
   let c = chalk
-  if (isFresh || !project.targets.length) {
+  if (isFresh || !project.targets.length || project.isIgnored) {
     c = c.dim
   }
-  if (isFresh) {
+  if (project.isIgnored) {
+    console.log(`⏩ ${c('Ignored project')} ${c.bold.underline(getRelativePath(project.path))}`)
+    continue
+  } else if (isFresh) {
     console.log(`🥒 ${c('Fresh project')} ${c.bold.underline(getRelativePath(project.path))}`)
   } else {
     let oc = c

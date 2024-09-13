@@ -18,7 +18,7 @@ The tool provides various options allowing to define what to clean up, which mak
 
 ## How It Works
 - **Recursively scan** the specified root directory for project folders, as defined by the presence of project indicator files (e.g., `package.json`), defined with `--project`(`-p`) flag.
-- **Check modification times** for each project based on its contents and skipping directories matching `--exclude`(`-e`) pattern.
+- **Check modification times** for each project based on its contents and skipping directories matching `--exclude`(`-x`) pattern.
 - **Identify potential targets** within found projects. Target is any file or directory matching the `--name`(`-n`) pattern (e.g., `node_modules`).
 - **Print scan results** categorizing projects into "fresh" and "old" with feedback on what was ignored, excluded, and most importantly, what targets were identified in each project. 
 - **Prompt for confirmation** before deleting the targets *in the old projects*. This step can be skipped with `--yes`(`-y`) flag for automated usage.
