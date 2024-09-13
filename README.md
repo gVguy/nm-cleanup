@@ -1,6 +1,6 @@
-# Node Modules Cleanup
+# nm-cleanup
 
-`nm-cleanup` is a customizable Node.js CLI tool designed to remove unnecessary directories from *outdated* projects.
+A customizable Node.js CLI tool designed to remove unnecessary directories from *outdated* projects.
 
 ![Screen recording of the example program run](https://s1.gifyu.com/images/S1YI4.gif)
 
