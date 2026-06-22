@@ -6,6 +6,9 @@ import { Command } from 'commander'
 import figlet from 'figlet'
 import readline from 'node:readline/promises'
 import chalk from 'chalk'
+import { createRequire } from 'node:module'
+
+const pkg = createRequire(import.meta.url)('./package.json')
 
 const DEFAULT_EXCLUDE = '^\\.'
 const DEFAULT_IGNORE = []
@@ -17,7 +20,7 @@ const DEFAULT_VERBOSE = ['targets']
 const program = new Command()
 
 program
-  .version('1.0.10')
+  .version(pkg.version)
   .description('A CLI tool to remove unnecessary directories from outdated projects')
   .argument('[rootDir]', 'Root directory for cleanup', '.')
   .option('-n, --name <regex>', 'Regex to match directory names', DEFAULT_NAME_REGEX)
