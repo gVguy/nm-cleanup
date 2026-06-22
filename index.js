@@ -12,7 +12,7 @@ const pkg = createRequire(import.meta.url)('./package.json')
 
 const DEFAULT_EXCLUDE = '^\\.'
 const DEFAULT_IGNORE = []
-const DEFAULT_NAME_REGEX = 'node_modules'
+const DEFAULT_NAME_REGEX = '^node_modules$'
 const DEFAULT_TIME_THRESHOLD_DAYS = '30'
 const DEFAULT_PROJECT_INDICATOR_FILES = ['package.json']
 const DEFAULT_VERBOSE = ['targets']
