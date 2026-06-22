@@ -82,7 +82,7 @@ const getIsProject = (dir) => projectIndicatorFiles.some(filename => fs.existsSy
  * returns wherer project mtime is fresher than --time threshold
  * @param {Project} project 
  */
-const getIsFresh = (project) =>  oldThreshold < project.mtime
+const getIsFresh = (project) => oldThreshold < project.mtime
 
 /**
  * @typedef {object} Project
@@ -140,11 +140,14 @@ const scanProjectsRecursive = (dir, parentProject, isProject) => {
 
   fs.readdirSync(dir, { withFileTypes: true }).forEach(entry => {
     const fullPath = path.join(dir, entry.name)
-  
+
+    // skip broken symlinks
+    if (entry.isSymbolicLink() && !fs.existsSync(fullPath)) return
+
     const isDirectory = entry.isDirectory()
     const isNestedProject = getIsProject(fullPath)
     const isIgnored = getIsIgnored(fullPath)
-  
+
     if (isIgnored) {
       if (
         isNestedProject &&
